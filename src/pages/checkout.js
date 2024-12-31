@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import '../styles/checkout.css'; // Import your CSS for styling
+import '../styles/checkout.css'; 
 import { ApiClient, CheckoutApi, CheckoutRequest } from '../master-card-client/src/index';
 
 function CheckoutPage() {
@@ -25,8 +25,6 @@ function CheckoutPage() {
   };
 
   const handleQuantityChange = (itemId, newQuantity) => {
-    // For simplicity, we're not implementing quantity changes in this dummy example
-    // In a real app, you would update the quantity of the item in the cart
     console.log(`Update quantity of item ${itemId} to ${newQuantity}`);
   };
 
@@ -36,7 +34,6 @@ function CheckoutPage() {
   useEffect(() => {
     const initializeMastercard = async () => {
       try {
-        // Wait for MastercardCheckoutServices to become available
         while (!window.MastercardCheckoutServices) {
           await new Promise((resolve) => setTimeout(resolve, 100));
         }
@@ -67,7 +64,7 @@ function CheckoutPage() {
       }
     };
 
-    // Load the Mastercard library asynchronously
+    // Load the Mastercard library 
     const script = document.createElement("script");
     script.src =
       "https://sandbox.src.mastercard.com/srci/integration/2/lib.js?srcDpaId=b189a4d5-2fb9-416f-ab84-2f682571afc1_dpa0&locale=en_US";
@@ -153,7 +150,6 @@ function CheckoutPage() {
           <span>Shipping:</span>
           <span>{shippingCost.toFixed(2)} BHD</span>
         </div>
-        {/* You can add more summary lines for discounts, taxes, etc. */}
         <div className="summary-line">
           <span>Discount:</span>
           <span>{discount.toFixed(2)} BHD</span>
