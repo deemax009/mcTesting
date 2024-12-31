@@ -1,0 +1,114 @@
+/* CheckoutPage.css */
+
+body {
+    background-color: #121212; /* Dark background */
+    color: #f5f5f5; /* Light text color */
+    font-family: 'Roboto', sans-serif; 
+  }
+  
+  .checkout-page {
+    max-width: 800px;
+    margin: 20px auto;
+    padding: 20px;
+    background-color: #1e1e1e; /* Slightly lighter background for the container */
+    border-radius: 8px;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+  }
+  
+  h1, h2 {
+    color: #80cbc4; /* Teal accent color for headings */
+  }
+  
+  .cart-items {
+    list-style: none;
+    padding: 0;
+  }
+  
+  .cart-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 15px;
+    border-bottom: 1px solid #333;
+  }
+  
+  .item-details {
+    flex-grow: 1;
+  }
+  
+  .item-name {
+    font-weight: bold;
+  }
+  
+  .item-price {
+    color: #ffc107; /* Amber accent color for prices */
+  }
+  
+  .item-actions {
+    display: flex;
+    gap: 10px; /* Space between buttons */
+  }
+  
+  button {
+    background-color: #2196f3; /* Blue accent color for buttons */
+    color: white;
+    border: none;
+    padding: 8px 12px;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: background-color 0.3s; /* Smooth transition for hover effect */
+  }
+  
+  button:hover {
+    background-color: #1976d2; /* Darker blue on hover */
+  }
+  
+  .summary {
+    margin-top: 20px;
+    padding: 15px;
+    background-color: #263238; /* Darker gray for the summary section */
+    border-radius: 4px;
+  }
+  
+  .summary-line {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 10px;
+  }
+  
+  .summary-line.total {
+    font-weight: bold;
+    font-size: 1.2em;
+  }
+  
+  .total span:last-child { /* Style the total amount */
+    color: #4caf50; /* Green accent color for the total */
+  }
+  
+  hr {
+    border-color: #333;
+  }
+  
+  /* Mastercard Payment Form (you might need to adjust this based on the actual form) */
+  #mastercard-payment-form {
+    margin-top: 20px;
+    padding: 20px;
+    border: 1px solid #333;
+    border-radius: 4px;
+  }
+  
+  /* Responsive design - adjust as needed */
+  @media (max-width: 600px) {
+    .checkout-page {
+      padding: 10px;
+    }
+  
+    .cart-item {
+      flex-direction: column;
+      align-items: flex-start;
+    }
+  
+    .item-actions {
+      margin-top: 10px;
+    }
+  }

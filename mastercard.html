@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Mastercard Test</title>
+  <script src="https://sandbox.src.mastercard.com/srci/integration/2/lib.js?srcDpaId='b189a4d5-2fb9-416f-ab84-2f682571afc1_dpa0'&locale='en_US'" async></script>
+  <script>
+    async function initMastercard() {
+      try {
+        // Wait for MastercardCheckoutServices to be available
+        while (!window.MastercardCheckoutServices) {
+          await new Promise(resolve => setTimeout(resolve, 100));
+        }
+
+        const mcCheckoutService = new window.MastercardCheckoutServices();
+
+        const params = {
+          srcDpaId: "b189a4d5-2fb9-416f-ab84-2f682571afc1_dpa0", // Replace with your actual DPA ID
+          dpaData: {
+            dpaName: "Testdpa0" // Replace with your actual DPA name
+          },
+          dpaTransactionOptions: {
+            dpaLocale: "en_US",
+            transactionAmount: {
+              transactionAmount: "100.00", // Replace with the actual transaction amount
+              transactionCurrencyCode: "BHD"
+            }
+            // ... other REQUIRED dpaTransactionOptions ...
+          },
+          cardBrands: ["mastercard"]
+        };
+
+        const result = await mcCheckoutService.init(params);
+        console.log('Mastercard checkout service initialized:', result);
+      } catch (error) {
+        console.error('Error initializing Mastercard checkout service:', error);
+      }
+    }
+
+    window.addEventListener('load', initMastercard);
+
+    async function doSomethingWithMastercard() {
+      if (window.mcCheckoutServices) {
+        try {
+          // 1. Get Available Cards (if applicable)
+          const cards = await window.mcCheckoutServices.getCards();
+          console.log('Available Mastercard cards:', cards);
+
+          // 2. Create Payment Session
+          const sessionRequest = {
+            // ... Add required parameters for the session request ...
+          };
+          const sessionResponse = await window.mcCheckoutServices.createSession(sessionRequest);
+          console.log('Mastercard session created:', sessionResponse);
+
+          // 3. Initiate Checkout
+          const checkoutRequest = {
+            // ... Add required parameters for the checkout request ...
+          };
+          const checkoutResponse = await window.mcCheckoutServices.checkout(checkoutRequest);
+          console.log('Mastercard checkout completed:', checkoutResponse);
+
+          // 4. Handle Response
+          if (checkoutResponse.status === 'SUCCESS') {
+            // ... Handle successful checkout ...
+          } else {
+            // ... Handle failed checkout ...
+          }
+        } catch (error) {
+          console.error('Error during Mastercard checkout:', error);
+        }
+      } else {
+        console.warn('Mastercard library not loaded.');
+      }
+    }
+  </script>
+</head>
+<body>
+  <button onclick="doSomethingWithMastercard()">Pay with Mastercard</button>
+  <src-button></src-button>
+</body>
+</html>
