@@ -47,10 +47,6 @@ function CheckoutPage() {
           },
           dpaTransactionOptions: {
             dpaLocale: "en_US",
-            transactionAmount: {
-              transactionAmount: calculateTotal(),
-              transactionCurrencyCode: "USD",
-            },
           },
           cardBrands: ["mastercard"],
         };
@@ -79,37 +75,66 @@ function CheckoutPage() {
         console.log(apiClient);
         if (isMastercardLoaded) { 
           try {
-            const cards = await window.mcCheckoutServices;
+            const cards = await mcCheckoutServices.getCards();
             console.log('Available Mastercard cards:', cards);
+            const cardData = {
+              primaryAccountNumber: "5186001700008785", // Example Mastercard number
+              panExpirationMonth: "12",
+              panExpirationYear: "28",
+              cardSecurityCode: "123", 
+              billingAddress: {
+                line1: "123 Main St",
+                city: "Anytown",
+                state: "CA",
+                zip: "12345",
+                countryCode: "US"
+              },
+              cardholderFirstName: "John",
+              cardholderLastName: "Doe"
+            };
+
+            function openMastercardWindow() {
+              // Calculate the position to center the window
+              const width = 480; // You can adjust the width if needed
+              const height = 700; // You can adjust the height if needed
+              const left = (window.innerWidth - width) / 2;
+              const top = (window.innerHeight - height) / 2;
+            
+              // Open the pop-up window with the specified URL
+              return window.open(
+                "https://sandbox.src.mastercard.com/sdk/communicator-frame.1.0.0.html", // The Mastercard URL
+                "MastercardWindow", 
+                `width=${width},height=${height},top=${top},left=${left}` 
+              );
+            }
+            
+            const { encryptedCard, cardBrand } = await mcCheckoutServices.encryptCard(cardData);
+            console.log(cardBrand + '' + encryptedCard);
             // Create Payment Session with Authentication and Passkeys Parameters (Required fields only)
             const sessionRequest = {
+              windowRef: openMastercardWindow(),
+              encryptedCard: encryptedCard,
+              cardBrand: "mastercard",
               dpaTransactionOptions: {
+                dpaLocale: "en_US",
                 authenticationPreferences: {
                   payloadRequested: 'AUTHENTICATED' 
                 },
-                paymentOptions: {
-                  dynamicDataType: 'CARD_APPLICATION_CRYPTOGRAM_SHORT_FORM' 
-                },
+                paymentOptions: [
+                  {
+                    dynamicDataType: 'CARD_APPLICATION_CRYPTOGRAM_SHORT_FORM' 
+                  }
+                ],
                 transactionAmount: { 
-                  transactionAmount: calculateTotal(), 
+                  transactionAmount: 100, 
                   transactionCurrencyCode: 'USD' 
                 },
-                // Passkeys parameters:
-                verificationMethod: '07' // Passkeys (FIDO2) verification method
               },
             };
-            const checkout = mcCheckoutServices.checkout(sessionRequest);
-            console.log(checkout);
-            const sessionResponse = await window.mcCheckoutServices.createSession(sessionRequest);
-            console.log('Mastercard session created:', sessionResponse);
+            const checkoutresponse = mcCheckoutServices.checkoutWithNewCard(sessionRequest);
+            console.log(checkoutresponse);
 
-            //initiate checkout 
-            let checkoutResponse;
-              if (sessionResponse.authenticationRequired) {
-                console.log('needed auth');
-              } else {
-                checkoutResponse = await window.mcCheckoutServices.checkoutWithNewCard();
-              }
+
 
           }
           catch(error) {
