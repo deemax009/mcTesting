@@ -112,3 +112,36 @@ body {
       margin-top: 10px;
     }
   }
+  #mastercard-payment-form {
+    width: 400px; /* Adjust width as needed */
+    margin: 20px auto;
+    padding: 20px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+  }
+  
+  #mastercard-payment-form div {
+    margin-bottom: 15px;
+  }
+  
+  #mastercard-payment-form label {
+    display: block;
+    margin-bottom: 5px;
+  }
+  
+  #mastercard-payment-form input[type="text"] {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 3px;
+    box-sizing: border-box;
+  }
+  
+  #mastercard-payment-form button {
+    background-color: #007bff; /* Blue background color */
+    color: white;
+    padding: 10px 20px;
+    border: none;
+    border-radius: 3px;
+    cursor: pointer;
+  }

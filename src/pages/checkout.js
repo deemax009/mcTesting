@@ -28,6 +28,15 @@ function CheckoutPage() {
     console.log(`Update quantity of item ${itemId} to ${newQuantity}`);
   };
 
+    const [cardDetails, setCardDetails] = useState({
+      primaryAccountNumber: "", // Example Mastercard number
+      panExpirationYear: "",
+      panExpirationMonth: "",
+      cardSecurityCode: "", 
+      cardholderFirstName: "",
+      cardholderLastName: "",
+    });
+
   const [isMastercardLoaded, setIsMastercardLoaded] = useState(false);
   const [mcCheckoutServices, setmcCheckoutServices] = useState();
 
@@ -48,7 +57,7 @@ function CheckoutPage() {
           dpaTransactionOptions: {
             dpaLocale: "en_US",
           },
-          cardBrands: ["mastercard"],
+          cardBrands: ["mastercard","visa"],
         };
 
         const result = await mcCheckoutService.init(params);
@@ -75,23 +84,16 @@ function CheckoutPage() {
         console.log(apiClient);
         if (isMastercardLoaded) { 
           try {
-            const cards = await mcCheckoutServices.getCards();
-            console.log('Available Mastercard cards:', cards);
             const cardData = {
               primaryAccountNumber: "5186001700008785", // Example Mastercard number
               panExpirationMonth: "12",
               panExpirationYear: "28",
               cardSecurityCode: "123", 
-              billingAddress: {
-                line1: "123 Main St",
-                city: "Anytown",
-                state: "CA",
-                zip: "12345",
-                countryCode: "US"
-              },
               cardholderFirstName: "John",
               cardholderLastName: "Doe"
             };
+
+            
 
             function openMastercardWindow() {
               // Calculate the position to center the window
@@ -108,7 +110,8 @@ function CheckoutPage() {
               );
             }
             
-            const { encryptedCard, cardBrand } = await mcCheckoutServices.encryptCard(cardData);
+            const { encryptedCard, cardBrand } = await mcCheckoutServices.encryptCard(cardDetails);
+            console.log(cardDetails);
             console.log(cardBrand + '' + encryptedCard);
             // Create Payment Session with Authentication and Passkeys Parameters (Required fields only)
             const sessionRequest = {
@@ -144,6 +147,10 @@ function CheckoutPage() {
           else{
             console.warn("master card library ain't loaded yet");
           }
+          };
+          const handleCardInputChange = (event) => {
+            const { name, value } = event.target;
+            setCardDetails({ ...cardDetails, [name]: value });
           };
 
   return (
@@ -187,6 +194,90 @@ function CheckoutPage() {
       </div>
 
       <div id="mastercard-payment-form"> 
+      <form id="card-input-form">
+          <div>
+            <label htmlFor="primaryAccountNumber">Card Number:</label>
+            <input
+              type="text"
+              id="primaryAccountNumber"
+              name="primaryAccountNumber"
+              value={cardDetails.primaryAccountNumber}
+              onChange={handleCardInputChange}
+              maxLength="16"
+              pattern="[0-9]*"
+              required
+              placeholder="Enter 16-digit card number"
+            />
+          </div>
+          <div>
+            <label htmlFor="panExpirationMonth">Expiry Month:</label>
+            <input
+              type="text" 
+              id="panExpirationMonth"
+              name="panExpirationMonth"
+              value={cardDetails.panExpirationMonth}
+              onChange={handleCardInputChange}
+              maxLength="2"
+              pattern="(0[1-9]|1[0-2])"
+              required
+              placeholder="MM"
+            />
+          </div>
+          <div>
+            <label htmlFor="panExpirationYear">Expiry Year:</label>
+            <input
+              type="text"
+              id="panExpirationYear" 
+              name="panExpirationYear"
+              value={cardDetails.panExpirationYear}
+              onChange={handleCardInputChange}
+              maxLength="2"
+              pattern="[0-9]*"
+              required
+              placeholder="YY"
+            />
+          </div>
+          <div>
+            <label htmlFor="cardSecurityCode">CVV:</label>
+            <input
+              type="text"
+              id="cardSecurityCode"
+              name="cardSecurityCode" 
+              value={cardDetails.cardSecurityCode}
+              onChange={handleCardInputChange}
+              maxLength="3"
+              pattern="[0-9]*"
+              required
+              placeholder="Enter 3-digit CVV"
+            />
+          </div>
+          <div>
+            <label htmlFor="cardholderFirstName">First Name:</label>
+            <input
+              type="text"
+              id="cardholderFirstName"
+              name="cardholderFirstName"
+              value={cardDetails.cardholderFirstName}
+              onChange={handleCardInputChange}
+              pattern="[A-Za-z\s]+"
+              required
+              placeholder="Enter first name"
+            />
+          </div>
+          <div>
+            <label htmlFor="cardholderLastName">Last Name:</label>
+            <input
+              type="text"
+              id="cardholderLastName"
+              name="cardholderLastName"
+              value={cardDetails.cardholderLastName}
+              onChange={handleCardInputChange}
+              pattern="[A-Za-z\s]+"
+              required
+              placeholder="Enter last name"
+            />
+          </div>
+        </form>
         <src-button onClick={handleMastercardPayment}></src-button>
       </div> 
 
