@@ -5,10 +5,14 @@
   "dependencies": {
     "axios": "^1.7.9",
     "cra-template": "1.2.0",
+    "crypto-browserify": "^3.12.1",
+    "fs": "^0.0.1-security",
+    "mastercard-oauth1-signer": "^1.1.7",
     "querystring-es3": "^0.2.1",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
     "react-scripts": "5.0.1",
+    "stream-browserify": "^3.0.0",
     "superagent": "^10.1.1",
     "web-vitals": "^4.2.4"
   },
@@ -38,5 +42,10 @@
   },
   "devDependencies": {
     "@openapitools/openapi-generator-cli": "^2.15.3"
+  },
+  "browser": {
+    "fs": false,
+    "os": false,
+    "path": false
   }
 }

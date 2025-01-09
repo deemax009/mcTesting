@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import '../styles/checkout.css'; 
 import { ApiClient, CheckoutApi, CheckoutRequest } from '../master-card-client/src/index';
+import axios from 'axios';
 
 function CheckoutPage() {
   const [cartItems, setCartItems] = useState([
@@ -41,6 +42,38 @@ function CheckoutPage() {
   const [mcCheckoutServices, setmcCheckoutServices] = useState();
 
   useEffect(() => {
+    const dpaRegistrationData = {
+      "dpas": [
+        {
+          "supportedCardBrands": ["MASTERCARD"],
+          "dpaData": {
+            "dpaName": "myShop",
+            "dpaPresentationName": "myShop",
+            "dpaUri": "https://mctesting--mastercard-7b751.asia-east1.hosted.app/" // Replace with your actual DPA URI
+          },
+          "debitTokenRequested": true,
+          "merchantCountryCode": "US",
+          "supportedCheckoutTypes": ["CLICK_TO_PAY"]
+        }
+      ]
+    };
+    
+    const organizationId = 'b189a4d5-2fb9-416f-ab84-2f682571afc1'; // Replace with your actual organization ID
+    const apiUrl = `https://sandbox.api.mastercard.com/srci/onboarding/org/${organizationId}/dpas/batch`;
+    const registerDPA = async () => {
+      try {
+        const response = await axios.post(apiUrl, dpaRegistrationData, {
+          headers: {
+            'Content-Type': 'application/json',
+          }
+        });
+      
+        console.log('DPA registration successful:', response.data);
+      } catch (error) {
+        console.error('Error registering DPA:', error);
+      }
+    };
+    
     const initializeMastercard = async () => {
       try {
         while (!window.MastercardCheckoutServices) {
@@ -133,11 +166,18 @@ function CheckoutPage() {
                   transactionCurrencyCode: 'USD' 
                 },
               },
+              
             };
-            const checkoutresponse = mcCheckoutServices.checkoutWithNewCard(sessionRequest);
-            console.log(checkoutresponse);
+            const checkoutresponsePromise = mcCheckoutServices.checkoutWithNewCard(sessionRequest);
+            checkoutresponsePromise.then(function (checkoutResponse) {
+              console.log('Checkout successful:', checkoutResponse);
+              console.log('Checkout Action Code:', checkoutResponse.checkoutActionCode); 
+            })
+            .catch(function (error) {
+              console.error('Checkout failed:', error);
+            });
 
-
+            
 
           }
           catch(error) {
