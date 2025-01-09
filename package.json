@@ -1,6 +1,7 @@
 {
   "name": "mastercard",
   "version": "0.1.0",
+  "proxy": "https://sandbox.api.mastercard.com",
   "private": true,
   "dependencies": {
     "axios": "^1.7.9",

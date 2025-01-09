@@ -109,6 +109,7 @@ function CheckoutPage() {
     script.async = true;
     script.onload = initializeMastercard;
     document.head.appendChild(script);
+    registerDPA();
   }, []);
 
       const handleMastercardPayment = async () => {
