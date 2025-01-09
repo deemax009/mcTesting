@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import '../styles/checkout.css'; 
-import { ApiClient, CheckoutApi, CheckoutRequest } from '../master-card-client/src/index';
+import { ApiClient, DpaData, MerchantRegistrationApi } from '../api_client/src/index'; // Replace with the actual library name
 import axios from 'axios';
+
 
 function CheckoutPage() {
   const [cartItems, setCartItems] = useState([
@@ -49,7 +50,7 @@ function CheckoutPage() {
           "dpaData": {
             "dpaName": "myShop",
             "dpaPresentationName": "myShop",
-            "dpaUri": "https://mctesting--mastercard-7b751.asia-east1.hosted.app/" // Replace with your actual DPA URI
+            "dpaUri": "https://localhost:3000" // Replace with your actual DPA URI
           },
           "debitTokenRequested": true,
           "merchantCountryCode": "US",
@@ -58,21 +59,49 @@ function CheckoutPage() {
       ]
     };
     
-    const organizationId = 'b189a4d5-2fb9-416f-ab84-2f682571afc1'; // Replace with your actual organization ID
-    const apiUrl = `https://sandbox.api.mastercard.com/srci/onboarding/org/${organizationId}/dpas/batch`;
-    const registerDPA = async () => {
-      try {
-        const response = await axios.post(apiUrl, dpaRegistrationData, {
-          headers: {
-            'Content-Type': 'application/json',
-          }
-        });
-      
-        console.log('DPA registration successful:', response.data);
-      } catch (error) {
-        console.error('Error registering DPA:', error);
-      }
+    const apiClient = new ApiClient();
+    apiClient.basePath = 'https://sandbox.api.mastercard.com/srci/onboarding';
+    apiClient.defaultHeaders = {
+      'User-Agent': 'MyCustomUserAgent' 
     };
+
+    const merchantRegistrationApi = new MerchantRegistrationApi(apiClient);
+    const organizationId = 'b189a4d5-2fb9-416f-ab84-2f682571afc1';
+    const correlationId = 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+      var r = Math.random() * 16 | 0, v = c == 'x' ? r : (r & 0x3 | 0x8);
+      return v.toString(16);
+    });
+
+    merchantRegistrationApi.bulkAddUpdateDpa(
+      correlationId, 
+      organizationId, 
+      dpaRegistrationData, 
+      (error, data, response) => {
+        if (error) {
+          console.error("Error registering DPA:", error);
+        } else {
+          console.log("DPA registration successful:", data);
+          console.log("Response:", response);
+        }
+      }
+    );
+
+    //old code reg DPA using axios
+
+    // const registerDPA = async () => {
+    //   try {
+    //     const response = await axios.post(apiUrl, dpaRegistrationData, {
+    //       headers: {
+    //         'Content-Type': 'application/json',
+    //       }
+    //     });
+        
+      
+    //     console.log('DPA registration successful:', response.data);
+    //   } catch (error) {
+    //     console.error('Error registering DPA:', error);
+    //   }
+    // };
     
     const initializeMastercard = async () => {
       try {
@@ -90,7 +119,7 @@ function CheckoutPage() {
           dpaTransactionOptions: {
             dpaLocale: "en_US",
           },
-          cardBrands: ["mastercard","visa"],
+          cardBrands: ["mastercard"],
         };
 
         const result = await mcCheckoutService.init(params);
@@ -109,13 +138,10 @@ function CheckoutPage() {
     script.async = true;
     script.onload = initializeMastercard;
     document.head.appendChild(script);
-    registerDPA();
+    //registerDPA();
   }, []);
 
       const handleMastercardPayment = async () => {
-        const apiClient = new ApiClient(); // Initialize ApiClient
-        apiClient.basePath = 'https://sandbox.api.mastercard.com/srci/api'; 
-        console.log(apiClient);
         if (isMastercardLoaded) { 
           try {
             const cardData = {
