@@ -50,7 +50,7 @@ function CheckoutPage() {
           "dpaData": {
             "dpaName": "myShop",
             "dpaPresentationName": "myShop",
-            "dpaUri": "https://localhost:3000" // Replace with your actual DPA URI
+            "dpaUri": "https://mctesting--mastercard-7b751.asia-east1.hosted.app/" // Replace with your actual DPA URI
           },
           "debitTokenRequested": true,
           "merchantCountryCode": "US",
