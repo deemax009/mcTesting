@@ -9,6 +9,8 @@
     "crypto-browserify": "^3.12.1",
     "fs": "^0.0.1-security",
     "mastercard-oauth1-signer": "^1.1.7",
+    "oauth-1.0a": "^2.2.6",
+    "querystring": "^0.2.1",
     "querystring-es3": "^0.2.1",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",

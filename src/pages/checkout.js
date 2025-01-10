@@ -1,7 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import '../styles/checkout.css'; 
-import { ApiClient, DpaData, MerchantRegistrationApi } from '../api_client/src/index'; // Replace with the actual library name
+import { ApiClient, CheckoutApi, TransactionConfirmationApi } from '../checkout_client/src/index'; // Replace with the actual library name
 import axios from 'axios';
+import OAuth from 'oauth-1.0a';
+import fs from 'fs';
+import forge from 'node-forge';
 
 
 function CheckoutPage() {
@@ -43,65 +46,22 @@ function CheckoutPage() {
   const [mcCheckoutServices, setmcCheckoutServices] = useState();
 
   useEffect(() => {
-    const dpaRegistrationData = {
-      "dpas": [
-        {
-          "supportedCardBrands": ["MASTERCARD"],
-          "dpaData": {
-            "dpaName": "myShop",
-            "dpaPresentationName": "myShop",
-            "dpaUri": "https://mctesting--mastercard-7b751.asia-east1.hosted.app/" // Replace with your actual DPA URI
-          },
-          "debitTokenRequested": true,
-          "merchantCountryCode": "US",
-          "supportedCheckoutTypes": ["CLICK_TO_PAY"]
-        }
-      ]
-    };
+    
     
     const apiClient = new ApiClient();
-    apiClient.basePath = 'https://sandbox.api.mastercard.com/srci/onboarding';
+    apiClient.basePath = 'https://sandbox.api.mastercard.com/srci/api';
+    apiClient.defaultHeaders = {};
     apiClient.defaultHeaders = {
-      'User-Agent': 'MyCustomUserAgent' 
+      'Content-Type': 'application/json',
+      'Access-Control-Allow-Origin': 'https://mctesting--mastercard-7b751.asia-east1.hosted.app/',
+      'Access-Control-Allow-Methods': 'POST, PUT, PATCH, GET, DELETE, OPTIONS',
+      'Access-Control-Allow-Headers': 'Origin, X-Api-Key, X-Requested-With, Content-Type, Accept, Authorization'
     };
 
-    const merchantRegistrationApi = new MerchantRegistrationApi(apiClient);
-    const organizationId = 'b189a4d5-2fb9-416f-ab84-2f682571afc1';
-    const correlationId = 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
-      var r = Math.random() * 16 | 0, v = c == 'x' ? r : (r & 0x3 | 0x8);
-      return v.toString(16);
-    });
+    
 
-    merchantRegistrationApi.bulkAddUpdateDpa(
-      correlationId, 
-      organizationId, 
-      dpaRegistrationData, 
-      (error, data, response) => {
-        if (error) {
-          console.error("Error registering DPA:", error);
-        } else {
-          console.log("DPA registration successful:", data);
-          console.log("Response:", response);
-        }
-      }
-    );
-
-    //old code reg DPA using axios
-
-    // const registerDPA = async () => {
-    //   try {
-    //     const response = await axios.post(apiUrl, dpaRegistrationData, {
-    //       headers: {
-    //         'Content-Type': 'application/json',
-    //       }
-    //     });
-        
-      
-    //     console.log('DPA registration successful:', response.data);
-    //   } catch (error) {
-    //     console.error('Error registering DPA:', error);
-    //   }
-    // };
+    const checkoutApi = new CheckoutApi(apiClient);
+    console.log(checkoutApi);
     
     const initializeMastercard = async () => {
       try {
@@ -153,7 +113,44 @@ function CheckoutPage() {
               cardholderLastName: "Doe"
             };
 
-            
+            const checkoutData = {
+              dpaTransactionOptions: {
+                transactionAmount: {
+                  transactionAmount: 100, // Or your calculated amount
+                  transactionCurrencyCode: "USD",
+                },
+                paymentOptions: [
+                  {
+                    dynamicDataType: "CARD_APPLICATION_CRYPTOGRAM_SHORT_FORM",
+                  },
+                ],
+              },
+              "correlationId": "ba7a2034-3c9e-4d74-b0e9-d77435fd35d7",
+              "checkoutType": "CLICK_TO_PAY",
+              "checkoutReference": {
+                "type": "MERCHANT_TRANSACTION_ID",
+                "data": {
+                  "merchantTransactionId": "0a4e0d3.34f4a04b.47ee82c373dd4fd5398f3980b39eb6d648b9687c"
+                },
+              },
+            };
+        
+            const apiUrl = "https://mctesting--mastercard-7b751.asia-east1.hosted.app/";
+            const response = () => {
+                axios.post(apiUrl, checkoutData, {
+                headers: {
+                  "Content-Type": "application/json",
+                  "X-Openapi-Clientid": "b189a4d5-2fb9-416f-ab84-2f682571afc1_dpa0", // Replace with your actual OpenAPI Client ID
+                },
+              }).then((response) => {
+                console.log("Checkout API response:", response);
+                console.log(response);
+              }).catch((error) => {
+                console.error("Error calling Checkout API:", error);
+              });
+            };
+            response();
+
 
             function openMastercardWindow() {
               // Calculate the position to center the window
