@@ -33,11 +33,11 @@ class ApiClient {
      * Overrides the default value set in spec file if present
      * @param {String} basePath
      */
-    constructor(basePath = 'https://sandbox.api.mastercard.com/srci/api') {
+    constructor(basePath = 'https://cors-anywhere.herokuapp.com/https://sandbox.api.mastercard.com/srci/api') {
         /**
          * The base URL against which to resolve every API call's (relative) path.
          * @type {String}
-         * @default https://sandbox.api.mastercard.com/srci/api
+         * @default https://cors-anywhere.herokuapp.com/https://sandbox.api.mastercard.com/srci/api
          */
         this.basePath = basePath.replace(/\/+$/, '');
 

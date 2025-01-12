@@ -1,13 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import '../styles/checkout.css'; 
-import { ApiClient, CheckoutApi, TransactionConfirmationApi } from '../checkout_client/src/index'; // Replace with the actual library name
-import axios from 'axios';
-import OAuth from 'oauth-1.0a';
-import fs from 'fs';
-import forge from 'node-forge';
+import { ApiClient, CheckoutApi, CheckoutRequest } from '../checkout_client/src/index'; // Replace with the actual library name
+
+
 
 
 function CheckoutPage() {
+
+
+
   const [cartItems, setCartItems] = useState([
     { id: 1, name: 'T-Shirt A', price: 10.00 },
     { id: 2, name: 'T-Shirt B', price: 12.50 },
@@ -45,24 +46,8 @@ function CheckoutPage() {
   const [isMastercardLoaded, setIsMastercardLoaded] = useState(false);
   const [mcCheckoutServices, setmcCheckoutServices] = useState();
 
-  useEffect(() => {
-    
-    
-    const apiClient = new ApiClient();
-    apiClient.basePath = 'https://sandbox.api.mastercard.com/srci/api';
-    apiClient.defaultHeaders = {};
-    apiClient.defaultHeaders = {
-      'Content-Type': 'application/json',
-      'Access-Control-Allow-Origin': 'https://mctesting--mastercard-7b751.asia-east1.hosted.app/',
-      'Access-Control-Allow-Methods': 'POST, PUT, PATCH, GET, DELETE, OPTIONS',
-      'Access-Control-Allow-Headers': 'Origin, X-Api-Key, X-Requested-With, Content-Type, Accept, Authorization'
-    };
+  useEffect(() => { 
 
-    
-
-    const checkoutApi = new CheckoutApi(apiClient);
-    console.log(checkoutApi);
-    
     const initializeMastercard = async () => {
       try {
         while (!window.MastercardCheckoutServices) {
@@ -98,60 +83,28 @@ function CheckoutPage() {
     script.async = true;
     script.onload = initializeMastercard;
     document.head.appendChild(script);
-    //registerDPA();
   }, []);
+
+  const AuthVerification = async (payload) => {
+    const checkoutAPIresponse = await fetch("/api/mastercard-checkout", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        payload: payload,
+      }),
+    });
+
+    const data = await checkoutAPIresponse.json();
+    return data.authorizationHeader;
+   
+  };
 
       const handleMastercardPayment = async () => {
         if (isMastercardLoaded) { 
           try {
-            const cardData = {
-              primaryAccountNumber: "5186001700008785", // Example Mastercard number
-              panExpirationMonth: "12",
-              panExpirationYear: "28",
-              cardSecurityCode: "123", 
-              cardholderFirstName: "John",
-              cardholderLastName: "Doe"
-            };
-
-            const checkoutData = {
-              dpaTransactionOptions: {
-                transactionAmount: {
-                  transactionAmount: 100, // Or your calculated amount
-                  transactionCurrencyCode: "USD",
-                },
-                paymentOptions: [
-                  {
-                    dynamicDataType: "CARD_APPLICATION_CRYPTOGRAM_SHORT_FORM",
-                  },
-                ],
-              },
-              "correlationId": "ba7a2034-3c9e-4d74-b0e9-d77435fd35d7",
-              "checkoutType": "CLICK_TO_PAY",
-              "checkoutReference": {
-                "type": "MERCHANT_TRANSACTION_ID",
-                "data": {
-                  "merchantTransactionId": "0a4e0d3.34f4a04b.47ee82c373dd4fd5398f3980b39eb6d648b9687c"
-                },
-              },
-            };
-        
-            const apiUrl = "https://mctesting--mastercard-7b751.asia-east1.hosted.app/";
-            const response = () => {
-                axios.post(apiUrl, checkoutData, {
-                headers: {
-                  "Content-Type": "application/json",
-                  "X-Openapi-Clientid": "b189a4d5-2fb9-416f-ab84-2f682571afc1_dpa0", // Replace with your actual OpenAPI Client ID
-                },
-              }).then((response) => {
-                console.log("Checkout API response:", response);
-                console.log(response);
-              }).catch((error) => {
-                console.error("Error calling Checkout API:", error);
-              });
-            };
-            response();
-
-
+            
             function openMastercardWindow() {
               // Calculate the position to center the window
               const width = 480; // You can adjust the width if needed
@@ -170,7 +123,7 @@ function CheckoutPage() {
             const { encryptedCard, cardBrand } = await mcCheckoutServices.encryptCard(cardDetails);
             console.log(cardDetails);
             console.log(cardBrand + '' + encryptedCard);
-            // Create Payment Session with Authentication and Passkeys Parameters (Required fields only)
+            
             const sessionRequest = {
               windowRef: openMastercardWindow(),
               encryptedCard: encryptedCard,
@@ -192,16 +145,48 @@ function CheckoutPage() {
               },
               
             };
+
+            
+            
+            
+            
+
+            
+
             const checkoutresponsePromise = mcCheckoutServices.checkoutWithNewCard(sessionRequest);
+            console.log(checkoutresponsePromise);
+
+
+            const checkoutapiClient = new ApiClient();
+            checkoutapiClient.defaultHeaders = {};
+            const authHeader = await AuthVerification(checkoutresponsePromise);
+            checkoutapiClient.defaultHeaders = {
+              'Authorization': authHeader,
+            };
+
+            const checkoutAPI = new CheckoutApi(checkoutapiClient);
+            console.log(checkoutAPI);
+
             checkoutresponsePromise.then(function (checkoutResponse) {
               console.log('Checkout successful:', checkoutResponse);
-              console.log('Checkout Action Code:', checkoutResponse.checkoutActionCode); 
+
+              const checkoutRequest = new CheckoutRequest("189a4d5-2fb9-416f-ab84-2f682571afc1_dpa0", "CLICK_TO_PAY", {type: "ENCRYPTED_CARD", data: {encryptedCard: sessionRequest.encryptedCard}});
+              console.log("checkoutRequest: " + checkoutRequest);
+
+              const response = checkoutAPI.checkout("0d1b688b-cc5a-4007-af74-13b62f1543de", checkoutRequest)
+              .then((response) => {
+                console.log(checkoutapiClient)
+                console.log(response);
+              })
+              .catch((error) => {
+                console.error(error);
+              });
+              console.log(response);
+
             })
             .catch(function (error) {
               console.error('Checkout failed:', error);
             });
-
-            
 
           }
           catch(error) {
@@ -343,6 +328,7 @@ function CheckoutPage() {
           </div>
         </form>
         <src-button onClick={handleMastercardPayment}></src-button>
+        <button onClick={AuthVerification}>Click to Pay</button>
       </div> 
 
     </div>
