@@ -5,6 +5,7 @@ const fs = require('fs');
 const forge = require('node-forge');
 const OAuth = require('mastercard-oauth1-signer');
 const crypto = require('crypto');
+const clientEncryption = require('mastercard-client-encryption');
 
 const app = express();
 const port = process.env.PORT || 3000;
@@ -20,9 +21,10 @@ const corsOptions = {
 app.use(cors(corsOptions));
 app.use(bodyParser.json());
 
+
 app.post('/api/mastercard-checkout', (req, res) => {
   // 1. Load the P12 certificate and extract the signing key
-  fs.readFile('../api_keys/1aTdpB7NpV0xGN1F8Ial.p12', (err, data) => {
+  fs.readFile('../api_keys/key.p12', (err, data) => {
     if (err) {
       console.error('Error reading keystore file:', err);
       res.status(500).json({ error: 'Failed to read keystore file' });
@@ -38,22 +40,17 @@ app.post('/api/mastercard-checkout', (req, res) => {
         bagType: forge.pki.oids.pkcs8ShroudedKeyBag,
       }).friendlyName[0];
       const signingKey = forge.pki.privateKeyToPem(keyObj.key);
-      console.log("signingKey: " + signingKey);
+      
+
 
       // 2. Generate OAuth Signature
       const consumerKey = 'DxrnZju1KxttxDNLjczmeZ4zMC72hlAofSpEi6XF612c7f02!5a6ec21a2cf44abe9a7b59376fd5e6a20000000000000000';
-      const uri = 'https://sandbox.api.mastercard.com/srci/api'; // Replace with actual endpoint
+      const uri = 'https://sandbox.api.mastercard.com/srci/api/checkout'; // Replace with actual endpoint
       const method = 'POST';
       const payload = JSON.stringify(req.body); 
-      const bodyHash = crypto.createHash('sha256').update(payload).digest('base64'); 
 
-      const authHeader = OAuth.getAuthorizationHeader(
-        uri,
-        method,
-        bodyHash,
-        consumerKey,
-        signingKey
-      );
+
+      const authHeader = OAuth.getAuthorizationHeader(uri, method, payload, consumerKey, signingKey);
       console.log("authHeader: " + authHeader);
       res.json({ authorizationHeader: authHeader });
     } catch (error) {

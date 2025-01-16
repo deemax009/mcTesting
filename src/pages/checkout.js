@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import '../styles/checkout.css'; 
-import { ApiClient, CheckoutApi, CheckoutRequest } from '../checkout_client/src/index'; // Replace with the actual library name
+import { ApiClient, CheckoutApi, CheckoutRequest, CheckoutReferenceType } from '../checkout_client/src/index'; // Replace with the actual library name
 
 
 
@@ -91,15 +91,14 @@ function CheckoutPage() {
       headers: {
         "Content-Type": "application/json",
       },
-      body: JSON.stringify({
-        payload: payload,
-      }),
+      body: JSON.stringify(payload)
     });
 
     const data = await checkoutAPIresponse.json();
     return data.authorizationHeader;
    
   };
+
 
       const handleMastercardPayment = async () => {
         if (isMastercardLoaded) { 
@@ -146,41 +145,64 @@ function CheckoutPage() {
               
             };
 
-            
-            
-            
-            
-
-            
-
             const checkoutresponsePromise = mcCheckoutServices.checkoutWithNewCard(sessionRequest);
             console.log(checkoutresponsePromise);
 
 
             const checkoutapiClient = new ApiClient();
             checkoutapiClient.defaultHeaders = {};
-            const authHeader = await AuthVerification(checkoutresponsePromise);
-            checkoutapiClient.defaultHeaders = {
-              'Authorization': authHeader,
-            };
 
             const checkoutAPI = new CheckoutApi(checkoutapiClient);
             console.log(checkoutAPI);
 
-            checkoutresponsePromise.then(function (checkoutResponse) {
+            checkoutresponsePromise.then(async function (checkoutResponse) {
               console.log('Checkout successful:', checkoutResponse);
+              const merchantTransactionId = checkoutResponse.headers['merchant-transaction-id'];
+              console.log('Merchant Transaction ID:', merchantTransactionId);
+              const correlationId = checkoutResponse.checkoutResponseData['srcCorrelationId'];
+              console.log('Correlation ID:', correlationId);
+              const xsrccxflowid = checkoutResponse.headers['x-src-cx-flow-id'];
+              console.log('x-src-cx-flow-id:', xsrccxflowid);
 
-              const checkoutRequest = new CheckoutRequest("189a4d5-2fb9-416f-ab84-2f682571afc1_dpa0", "CLICK_TO_PAY", {type: "ENCRYPTED_CARD", data: {encryptedCard: sessionRequest.encryptedCard}});
-              console.log("checkoutRequest: " + checkoutRequest);
+              const opts = {
+                'xSrcCxFlowId': xsrccxflowid // Replace with the flow ID from the previous response
+              };
 
-              const response = checkoutAPI.checkout("0d1b688b-cc5a-4007-af74-13b62f1543de", checkoutRequest)
+
+              const checkoutRequestData = {
+                dpaTransactionOptions: {
+                  transactionAmount: {
+                    transactionAmount: 100,
+                    transactionCurrencyCode: "USD",
+                  },
+                },
+                srcDpaId: "b189a4d5-2fb9-416f-ab84-2f682571afc1_dpa0",
+                correlationId: correlationId,
+                checkoutType: "CLICK_TO_PAY",
+                checkoutReference: {
+                  type: "MERCHANT_TRANSACTION_ID",
+                  data: {
+                    merchantTransactionId: merchantTransactionId,
+                  },
+                },
+              };
+              console.log(checkoutRequestData);
+              const authHeader = await AuthVerification(checkoutRequestData);
+              checkoutapiClient.defaultHeaders = {
+                'Authorization': authHeader,
+              };
+              
+
+              const response = checkoutAPI
+              .checkout("b189a4d5-2fb9-416f-ab84-2f682571afc1_dpa0", checkoutRequestData, opts)
               .then((response) => {
-                console.log(checkoutapiClient)
+                console.log(checkoutapiClient);
                 console.log(response);
               })
               .catch((error) => {
                 console.error(error);
               });
+            console.log(response);
               console.log(response);
 
             })
